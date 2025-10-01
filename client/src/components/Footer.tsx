@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-3 gap-8 mb-8">
           <div>
-            <h3 className="font-bold text-lg mb-4">캠퍼스 우산 대여</h3>
+            <h3 className="font-bold text-lg mb-4">유니버슈룹</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
               대학생을 위한 우산 대여 서비스로<br />
               더 이상 우산 때문에 고민하지 마세요.
@@ -14,19 +14,17 @@ export default function Footer() {
           </div>
           
           <div>
-            <h4 className="font-semibold mb-4">연락처</h4>
+            <h4 className="font-semibold mb-4">사업자 정보</h4>
             <div className="space-y-3 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                <span>contact@umbrella.ac.kr</span>
+              <div>
+                <p>사업자명: 유니버슈룹</p>
               </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                <span>02-1234-5678</span>
+              <div>
+                <p>개인정보책임자: 최성준</p>
               </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                <span>서울시 강남구 테헤란로 123</span>
+              <div className="flex items-start gap-2">
+                <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>성북구 정릉로 77 국민대학교 N11 체육관</span>
               </div>
             </div>
           </div>
@@ -43,7 +41,7 @@ export default function Footer() {
         </div>
         
         <div className="pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>© 2024 캠퍼스 우산 대여. All rights reserved.</p>
+          <p>© 2024 유니버슈룹. All rights reserved.</p>
         </div>
       </div>
     </footer>

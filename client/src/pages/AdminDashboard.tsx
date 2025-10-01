@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,13 +9,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Umbrella, Building2, LogOut } from "lucide-react";
+import { Umbrella, Building2, LogOut, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import type { RentalApplication, AdvertiserApplication } from "@shared/schema";
+import { format } from "date-fns";
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
-  const [rentalApplications] = useState<any[]>([]);
-  const [advertiserApplications] = useState<any[]>([]);
+
+  const { data: rentalApplications = [], isLoading: isLoadingRentals } = useQuery<RentalApplication[]>({
+    queryKey: ["/api/rental-applications"],
+  });
+
+  const { data: advertiserApplications = [], isLoading: isLoadingAdvertisers } = useQuery<AdvertiserApplication[]>({
+    queryKey: ["/api/advertiser-applications"],
+  });
 
   const handleLogout = () => {
     setLocation("/admin/login");
@@ -60,7 +68,14 @@ export default function AdminDashboard() {
                 우산 대여 신청 목록
               </h2>
               
-              {rentalApplications.length === 0 ? (
+              {isLoadingRentals ? (
+                <div className="text-center py-12">
+                  <Loader2 className="w-16 h-16 text-muted-foreground mx-auto mb-4 animate-spin" />
+                  <p className="text-muted-foreground">
+                    데이터를 불러오는 중...
+                  </p>
+                </div>
+              ) : rentalApplications.length === 0 ? (
                 <div className="text-center py-12">
                   <Umbrella className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground">
@@ -84,15 +99,17 @@ export default function AdminDashboard() {
                     </TableHeader>
                     <TableBody>
                       {rentalApplications.map((app, index) => (
-                        <TableRow key={index} data-testid={`row-rental-${index}`}>
-                          <TableCell>{app.name}</TableCell>
-                          <TableCell>{app.email}</TableCell>
-                          <TableCell>{app.major}</TableCell>
-                          <TableCell>{app.studentId}</TableCell>
-                          <TableCell>{app.phone}</TableCell>
-                          <TableCell>{app.rentalDate}</TableCell>
-                          <TableCell>{app.returnDate}</TableCell>
-                          <TableCell>{app.createdAt}</TableCell>
+                        <TableRow key={app.id} data-testid={`row-rental-${index}`}>
+                          <TableCell data-testid={`text-rental-name-${index}`}>{app.name}</TableCell>
+                          <TableCell data-testid={`text-rental-email-${index}`}>{app.email}</TableCell>
+                          <TableCell data-testid={`text-rental-major-${index}`}>{app.major}</TableCell>
+                          <TableCell data-testid={`text-rental-studentid-${index}`}>{app.studentId}</TableCell>
+                          <TableCell data-testid={`text-rental-phone-${index}`}>{app.phone}</TableCell>
+                          <TableCell data-testid={`text-rental-rentaldate-${index}`}>{app.rentalDate}</TableCell>
+                          <TableCell data-testid={`text-rental-returndate-${index}`}>{app.returnDate}</TableCell>
+                          <TableCell data-testid={`text-rental-createdat-${index}`}>
+                            {app.createdAt ? format(new Date(app.createdAt), 'yyyy-MM-dd HH:mm:ss') : '-'}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -108,7 +125,14 @@ export default function AdminDashboard() {
                 광고 신청 목록
               </h2>
               
-              {advertiserApplications.length === 0 ? (
+              {isLoadingAdvertisers ? (
+                <div className="text-center py-12">
+                  <Loader2 className="w-16 h-16 text-muted-foreground mx-auto mb-4 animate-spin" />
+                  <p className="text-muted-foreground">
+                    데이터를 불러오는 중...
+                  </p>
+                </div>
+              ) : advertiserApplications.length === 0 ? (
                 <div className="text-center py-12">
                   <Building2 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground">
@@ -129,12 +153,14 @@ export default function AdminDashboard() {
                     </TableHeader>
                     <TableBody>
                       {advertiserApplications.map((app, index) => (
-                        <TableRow key={index} data-testid={`row-advertiser-${index}`}>
-                          <TableCell>{app.companyName}</TableCell>
-                          <TableCell>{app.representative}</TableCell>
-                          <TableCell>{app.phone}</TableCell>
-                          <TableCell>{app.email}</TableCell>
-                          <TableCell>{app.createdAt}</TableCell>
+                        <TableRow key={app.id} data-testid={`row-advertiser-${index}`}>
+                          <TableCell data-testid={`text-advertiser-company-${index}`}>{app.companyName}</TableCell>
+                          <TableCell data-testid={`text-advertiser-representative-${index}`}>{app.representative}</TableCell>
+                          <TableCell data-testid={`text-advertiser-phone-${index}`}>{app.phone}</TableCell>
+                          <TableCell data-testid={`text-advertiser-email-${index}`}>{app.email}</TableCell>
+                          <TableCell data-testid={`text-advertiser-createdat-${index}`}>
+                            {app.createdAt ? format(new Date(app.createdAt), 'yyyy-MM-dd HH:mm:ss') : '-'}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

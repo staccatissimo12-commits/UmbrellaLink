@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -14,26 +13,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Building2, Users, TrendingUp } from "lucide-react";
+import { insertAdvertiserApplicationSchema } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
 
-const advertiserFormSchema = z.object({
-  companyName: z.string().min(2, "기업명을 입력해주세요"),
-  representative: z.string().min(2, "대표자명을 입력해주세요"),
-  phone: z.string().min(10, "전화번호를 입력해주세요"),
-  email: z.string().email("올바른 이메일을 입력해주세요"),
-});
+type AdvertiserFormData = typeof insertAdvertiserApplicationSchema._type;
 
-type AdvertiserFormData = z.infer<typeof advertiserFormSchema>;
-
-interface AdvertiserSectionProps {
-  onSubmit?: (data: AdvertiserFormData) => void;
-}
-
-export default function AdvertiserSection({ onSubmit }: AdvertiserSectionProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export default function AdvertiserSection() {
   const { toast } = useToast();
   
   const form = useForm<AdvertiserFormData>({
-    resolver: zodResolver(advertiserFormSchema),
+    resolver: zodResolver(insertAdvertiserApplicationSchema),
     defaultValues: {
       companyName: "",
       representative: "",
@@ -42,21 +31,28 @@ export default function AdvertiserSection({ onSubmit }: AdvertiserSectionProps) 
     },
   });
 
-  const handleSubmit = async (data: AdvertiserFormData) => {
-    setIsSubmitting(true);
-    console.log("Advertiser form submitted:", data);
-    
-    if (onSubmit) {
-      onSubmit(data);
-    }
-    
-    toast({
-      title: "신청 완료!",
-      description: "광고 신청이 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.",
-    });
-    
-    form.reset();
-    setIsSubmitting(false);
+  const mutation = useMutation({
+    mutationFn: async (data: AdvertiserFormData) => {
+      return await apiRequest("POST", "/api/advertiser-applications", data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "신청 완료!",
+        description: "광고 신청이 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.",
+      });
+      form.reset();
+    },
+    onError: () => {
+      toast({
+        title: "신청 실패",
+        description: "다시 시도해주세요.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = (data: AdvertiserFormData) => {
+    mutation.mutate(data);
   };
 
   return (
@@ -204,10 +200,10 @@ export default function AdvertiserSection({ onSubmit }: AdvertiserSectionProps) 
                   type="submit"
                   size="lg"
                   className="w-full text-lg h-14"
-                  disabled={isSubmitting}
+                  disabled={mutation.isPending}
                   data-testid="button-submit-advertiser"
                 >
-                  {isSubmitting ? "신청 중..." : "광고 신청하기"}
+                  {mutation.isPending ? "신청 중..." : "광고 신청하기"}
                 </Button>
               </form>
             </Form>

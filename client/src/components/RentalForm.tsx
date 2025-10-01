@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -14,29 +13,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "lucide-react";
+import { insertRentalApplicationSchema } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
 
-const rentalFormSchema = z.object({
-  rentalDate: z.string().min(1, "대여 날짜를 입력해주세요"),
-  returnDate: z.string().min(1, "반납 날짜를 입력해주세요"),
-  name: z.string().min(2, "이름을 입력해주세요"),
-  email: z.string().email("올바른 이메일을 입력해주세요"),
-  major: z.string().min(2, "학과를 입력해주세요"),
-  studentId: z.string().min(1, "학번을 입력해주세요"),
-  phone: z.string().min(10, "전화번호를 입력해주세요"),
-});
+type RentalFormData = typeof insertRentalApplicationSchema._type;
 
-type RentalFormData = z.infer<typeof rentalFormSchema>;
-
-interface RentalFormProps {
-  onSubmit?: (data: RentalFormData) => void;
-}
-
-export default function RentalForm({ onSubmit }: RentalFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export default function RentalForm() {
   const { toast } = useToast();
   
   const form = useForm<RentalFormData>({
-    resolver: zodResolver(rentalFormSchema),
+    resolver: zodResolver(insertRentalApplicationSchema),
     defaultValues: {
       rentalDate: "",
       returnDate: "",
@@ -48,21 +34,28 @@ export default function RentalForm({ onSubmit }: RentalFormProps) {
     },
   });
 
-  const handleSubmit = async (data: RentalFormData) => {
-    setIsSubmitting(true);
-    console.log("Rental form submitted:", data);
-    
-    if (onSubmit) {
-      onSubmit(data);
-    }
-    
-    toast({
-      title: "신청 완료!",
-      description: "우산 대여 신청이 접수되었습니다.",
-    });
-    
-    form.reset();
-    setIsSubmitting(false);
+  const mutation = useMutation({
+    mutationFn: async (data: RentalFormData) => {
+      return await apiRequest("POST", "/api/rental-applications", data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "신청 완료!",
+        description: "우산 대여 신청이 접수되었습니다.",
+      });
+      form.reset();
+    },
+    onError: () => {
+      toast({
+        title: "신청 실패",
+        description: "다시 시도해주세요.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = (data: RentalFormData) => {
+    mutation.mutate(data);
   };
 
   return (
@@ -223,10 +216,10 @@ export default function RentalForm({ onSubmit }: RentalFormProps) {
               type="submit"
               size="lg"
               className="w-full text-lg h-14"
-              disabled={isSubmitting}
+              disabled={mutation.isPending}
               data-testid="button-submit-rental"
             >
-              {isSubmitting ? "신청 중..." : "대여 신청하기"}
+              {mutation.isPending ? "신청 중..." : "대여 신청하기"}
             </Button>
           </form>
         </Form>
